@@ -10,6 +10,10 @@ from .serializers import (
 )
 from .permissions import IsAdmin, IsManager, IsOwnerOrAdmin
 
+
+# --------------------------------------------------------------------------------------------------------------
+#Register Functionlity
+# --------------------------------------------------------------------------------------------------------------
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserCreateSerializer
@@ -27,6 +31,10 @@ class RegisterView(generics.CreateAPIView):
             'access': str(refresh.access_token),
         }, status=status.HTTP_201_CREATED)
 
+
+# --------------------------------------------------------------------------------------------------------------
+#Login Functionlity
+# --------------------------------------------------------------------------------------------------------------
 class LoginView(generics.GenericAPIView):
     serializer_class = LoginSerializer
     permission_classes = [permissions.AllowAny]
@@ -43,6 +51,11 @@ class LoginView(generics.GenericAPIView):
             'access': str(refresh.access_token),
         })
 
+
+# --------------------------------------------------------------------------------------------------------------
+# Display user list (access only admin and manager)
+# Admin can view all users (other admin, manager and employee)
+# --------------------------------------------------------------------------------------------------------------
 class UserListView(generics.ListCreateAPIView):
     serializer_class = UserSerializer
     permission_classes = [IsManager]
@@ -68,6 +81,9 @@ class UserListView(generics.ListCreateAPIView):
         user = serializer.save()
 
 
+# --------------------------------------------------------------------------------------------------------------
+# Display user details
+# --------------------------------------------------------------------------------------------------------------
 class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = User.objects.all()
     permission_classes = [IsAdmin]
@@ -82,6 +98,10 @@ class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
             raise permissions.PermissionDenied("Cannot delete your own account")
         instance.delete()
 
+
+# --------------------------------------------------------------------------------------------------------------
+# Display Profile 
+# --------------------------------------------------------------------------------------------------------------
 class ProfileView(generics.RetrieveUpdateAPIView):
     serializer_class = UserSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -94,6 +114,10 @@ class ProfileView(generics.RetrieveUpdateAPIView):
             return UserUpdateSerializer
         return UserSerializer
 
+
+# --------------------------------------------------------------------------------------------------------------
+# Logout Functionalitu
+# --------------------------------------------------------------------------------------------------------------
 @api_view(['POST'])
 @permission_classes([permissions.IsAuthenticated])
 def logout_view(request):

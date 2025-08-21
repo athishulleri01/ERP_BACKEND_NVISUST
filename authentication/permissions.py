@@ -1,5 +1,9 @@
 from rest_framework import permissions
 
+
+# --------------------------------------------------------------------------------------------------------------
+# Custom permission based on user scope(roles)
+# --------------------------------------------------------------------------------------------------------------
 class IsAdmin(permissions.BasePermission):
     def has_permission(self, request, view):
         return (

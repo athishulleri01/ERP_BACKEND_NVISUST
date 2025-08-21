@@ -4,11 +4,19 @@ from django.contrib.auth.password_validation import validate_password
 from rest_framework.validators import UniqueValidator
 from .models import User, UserProfile
 
+
+# --------------------------------------------------------------------------------------------------------------
+# user profile serializer class 
+# --------------------------------------------------------------------------------------------------------------
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
         fields = ['bio', 'avatar', 'address', 'date_of_birth']
 
+
+# --------------------------------------------------------------------------------------------------------------
+# User serializer class 
+# --------------------------------------------------------------------------------------------------------------
 class UserSerializer(serializers.ModelSerializer):
     profile = UserProfileSerializer(read_only=True)
     class Meta:
@@ -16,8 +24,11 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ['id', 'username', 'email', 'first_name', 'last_name', 
                  'role', 'phone', 'department', 'is_active', 'created_at', 'profile']
         read_only_fields = ['id', 'created_at']
+  
         
-        
+# --------------------------------------------------------------------------------------------------------------
+# Updating user profile
+# --------------------------------------------------------------------------------------------------------------        
 class UserProfileUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
@@ -28,6 +39,10 @@ class UserProfileUpdateSerializer(serializers.ModelSerializer):
             'address': {'required': False},
             'date_of_birth': {'required': False},
         }
+        
+ # --------------------------------------------------------------------------------------------------------------
+# Creating new User
+# --------------------------------------------------------------------------------------------------------------  
 class UserCreateSerializer(serializers.ModelSerializer):
     password = serializers.CharField(
         write_only=True, validators=[validate_password]
@@ -61,8 +76,11 @@ class UserCreateSerializer(serializers.ModelSerializer):
         return user
 
 
+# --------------------------------------------------------------------------------------------------------------
+# To update user details
+# --------------------------------------------------------------------------------------------------------------
 class UserUpdateSerializer(serializers.ModelSerializer):
-    profile = UserProfileUpdateSerializer(required=False)  # ✅ optional
+    profile = UserProfileUpdateSerializer(required=False)
 
     class Meta:
         model = User
@@ -80,6 +98,9 @@ class UserUpdateSerializer(serializers.ModelSerializer):
 
         return user
 
+# --------------------------------------------------------------------------------------------------------------
+# Logout serializer
+# --------------------------------------------------------------------------------------------------------------
 class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
     password = serializers.CharField()
