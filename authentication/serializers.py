@@ -3,6 +3,30 @@ from django.contrib.auth import authenticate
 from django.contrib.auth.password_validation import validate_password
 from .models import User, UserProfile
 
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfile
+        fields = ['bio', 'avatar', 'address', 'date_of_birth']
+
+class UserSerializer(serializers.ModelSerializer):
+    profile = UserProfileSerializer(read_only=True)
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'email', 'first_name', 'last_name', 
+                 'role', 'phone', 'department', 'is_active', 'created_at', 'profile']
+        read_only_fields = ['id', 'created_at']
+        
+        
+class UserProfileUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfile
+        fields = ['bio', 'avatar', 'address', 'date_of_birth']
+        extra_kwargs = {
+            'bio': {'required': False},
+            'avatar': {'required': False},
+            'address': {'required': False},
+            'date_of_birth': {'required': False},
+        }
 class UserCreateSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, validators=[validate_password])
     confirm_password = serializers.CharField(write_only=True)
@@ -20,6 +44,26 @@ class UserCreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         validated_data.pop('confirm_password')
         user = User.objects.create_user(**validated_data)
+        return user
+
+
+class UserUpdateSerializer(serializers.ModelSerializer):
+    profile = UserProfileUpdateSerializer(required=False)  # ✅ optional
+
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name', 'phone', 'department', 'is_active', 'role', 'profile']
+
+    def update(self, instance, validated_data):
+        profile_data = validated_data.pop('profile', None)
+        user = super().update(instance, validated_data)
+
+        if profile_data:
+            profile, _ = UserProfile.objects.get_or_create(user=user)
+            for attr, value in profile_data.items():
+                setattr(profile, attr, value)
+            profile.save()
+
         return user
 
 class LoginSerializer(serializers.Serializer):

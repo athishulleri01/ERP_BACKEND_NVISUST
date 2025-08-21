@@ -42,7 +42,58 @@ class LoginView(generics.GenericAPIView):
             'refresh': str(refresh),
             'access': str(refresh.access_token),
         })
-        
+
+class UserListView(generics.ListCreateAPIView):
+    serializer_class = UserSerializer
+    permission_classes = [IsManager]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.role == 'admin':
+            return User.objects.all()
+        elif user.role == 'manager':
+            # Managers can only see employees
+            return User.objects.filter(role='employee')
+        return User.objects.none()
+
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return UserCreateSerializer
+        return UserSerializer
+
+    def perform_create(self, serializer):
+        # Only admins can create users
+        if self.request.user.role != 'admin':
+            raise permissions.PermissionDenied("Only admins can create users")
+        user = serializer.save()
+
+
+class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = User.objects.all()
+    permission_classes = [IsAdmin]
+
+    def get_serializer_class(self):
+        if self.request.method in ['PUT', 'PATCH']:
+            return UserUpdateSerializer
+        return UserSerializer
+
+    def perform_destroy(self, instance):
+        if instance == self.request.user:
+            raise permissions.PermissionDenied("Cannot delete your own account")
+        instance.delete()
+
+class ProfileView(generics.RetrieveUpdateAPIView):
+    serializer_class = UserSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_object(self):
+        return self.request.user
+
+    def get_serializer_class(self):
+        if self.request.method in ['PUT', 'PATCH']:
+            return UserUpdateSerializer
+        return UserSerializer
+
 @api_view(['POST'])
 @permission_classes([permissions.IsAuthenticated])
 def logout_view(request):
