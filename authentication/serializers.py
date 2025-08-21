@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth import authenticate
 from django.contrib.auth.password_validation import validate_password
+from rest_framework.validators import UniqueValidator
 from .models import User, UserProfile
 
 class UserProfileSerializer(serializers.ModelSerializer):
@@ -28,17 +29,30 @@ class UserProfileUpdateSerializer(serializers.ModelSerializer):
             'date_of_birth': {'required': False},
         }
 class UserCreateSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True, validators=[validate_password])
+    password = serializers.CharField(
+        write_only=True, validators=[validate_password]
+    )
     confirm_password = serializers.CharField(write_only=True)
+
+    username = serializers.CharField(
+        validators=[UniqueValidator(queryset=User.objects.all(), message="Username already taken")]
+    )
+    phone = serializers.CharField(
+        required=False,
+        allow_blank=True,
+        validators=[UniqueValidator(queryset=User.objects.all(), message="Phone number already in use")]
+    )
 
     class Meta:
         model = User
-        fields = ['username', 'email', 'first_name', 'last_name', 
-                 'password', 'confirm_password', 'role', 'phone', 'department']
+        fields = [
+            'username', 'email', 'first_name', 'last_name',
+            'password', 'confirm_password', 'role', 'phone', 'department'
+        ]
 
     def validate(self, attrs):
         if attrs['password'] != attrs['confirm_password']:
-            raise serializers.ValidationError("Passwords don't match")
+            raise serializers.ValidationError({"confirm_password": "Passwords don't match"})
         return attrs
 
     def create(self, validated_data):
