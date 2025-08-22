@@ -6,6 +6,9 @@ A Role-Based Access Control (RBAC) system for an **ERP platform** built with **D
 🔗 Frontend (Live): https://erp-frontend-nvisust.vercel.app/
 
 🔗 Backend API (AWS EC2 with SSL & domain): https://www.athishulleri.online/api/
+
+🔗 Frontend git repo: https://github.com/athishulleri01/ERP_FRONTEND_NVISUST.git
+
 ## 🚀 Features
 
 * **JWT Authentication** (Login, Logout, Token Refresh)
